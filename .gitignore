@@ -43,8 +43,7 @@
 *.Binaries
 *.Intermediate
 *.Saved
-DerivedDataCache
-*.sln
+*.DerivedDataCache
 *.vs
 .vsconfig
 
@@ -79,3 +78,5 @@ Plugins/**/Intermediate/*
 
 # Cache files for the editor to use
 DerivedDataCache/*
+PartTime/Saved
+PartTime/DerivedDataCache
