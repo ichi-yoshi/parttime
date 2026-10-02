@@ -40,6 +40,12 @@
 *.sdf
 *.VC.db
 *.VC.opendb
+*.Binaries
+*.Intermediate
+*.Saved
+DerivedDataCache
+*.sln
+*.vs
 .vsconfig
 
 # Precompiled Assets
