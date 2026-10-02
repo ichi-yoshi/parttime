@@ -40,11 +40,6 @@
 *.sdf
 *.VC.db
 *.VC.opendb
-*.Binaries
-*.Intermediate
-*.Saved
-*.DerivedDataCache
-*.vs
 .vsconfig
 
 # Precompiled Assets
@@ -80,3 +75,5 @@ Plugins/**/Intermediate/*
 DerivedDataCache/*
 PartTime/Saved
 PartTime/DerivedDataCache
+PartTime/Binaries
+PartTime/Intermediate
