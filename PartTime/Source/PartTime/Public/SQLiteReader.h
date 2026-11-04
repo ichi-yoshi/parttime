@@ -31,6 +31,24 @@ public:
 		return true;
 	}
 
+    // テンプレート関数：データマッパーを使用して指定型の配列として読み取る
+    template <typename T>
+    static bool ReadTable(const FString& DbPath, const FString& Query, const IDataMapper<T>& Mapper, TArray<T>& OutResults)
+    {
+        TArray<FSQLiteRow> RawRows;
+        if(!ExecuteQuery(DbPath, Query, RawRows))
+        {
+            return false;
+        }
+
+        OutResults.Reserve(RawRows.Num());
+        for(const FSQLiteRow& Row : RawRows)
+        {
+            OutResults.Add(Mapper.MapRow(Row));
+        }
+
+        return true;
+    }
 private:
     // 汎用読み取り関数：SQLを実行し、FSQLiteRowの配列を返す
     static bool ExecuteQuery(const FString& DbPath, const FString& Query, TArray<FSQLiteRow>& OutRows)
@@ -66,22 +84,5 @@ private:
         return true;
     }
 
-    // テンプレート関数：データマッパーを使用して指定型の配列として読み取る
-    template <typename T>
-    static bool ReadTable(const FString& DbPath, const FString& Query, const IDataMapper<T>& Mapper, TArray<T>& OutResults)
-    {
-        TArray<FSQLiteRow> RawRows;
-        if(!ExecuteQuery(DbPath, Query, RawRows))
-        {
-            return false;
-        }
-
-        OutResults.Reserve(RawRows.Num());
-        for(const FSQLiteRow& Row : RawRows)
-        {
-            OutResults.Add(Mapper.MapRow(Row));
-        }
-
-        return true;
-    }
+    
 };
