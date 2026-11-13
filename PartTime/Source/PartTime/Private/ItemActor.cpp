@@ -3,7 +3,7 @@
 
 #include "ItemActor.h"
 
-void ItemActor::ApplyItemdata(const FItemData& NewData)
+void AItemActor::ApplyItemData_Implementation(const FItemData& NewData)
 {
 	ApplyItemData_Implementation(NewData);
 }

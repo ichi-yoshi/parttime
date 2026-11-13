@@ -6,7 +6,7 @@
 #include "ItemDataTable.h"
 #include "ItemActor.h"
 
-void PartTimeGameMode::BeginPlay()
+void APartTimeGameMode::BeginPlay()
 {
 	Super::BeginPlay();
 
@@ -26,11 +26,11 @@ void PartTimeGameMode::BeginPlay()
 		AItemActor* ItemActor = Cast<AItemActor>(Actor);
 		if(ItemActor)
 		{
-			int32 ItemID = ItemActor->GetItemID();
+			int32 ItemID = ItemActor->ItemID;
 			if(ItemDataMap.Contains(ItemID))
 			{
 				const FItemData& ItemData = ItemDataMap[ItemID];
-				ItemActor->SetItemData(ItemData);
+				ItemActor->ApplyItemData_Implementation(ItemData);
 			}
 		}
 	}

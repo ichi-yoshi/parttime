@@ -8,14 +8,14 @@
 #include "ItemActor.generated.h"
 
 UCLASS()
-class PARTTIME_API ItemActor
+class PARTTIME_API AItemActor : public AActor
 {
 	GENERATED_BODY()
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item")
-	int32 ITemID = 0;
+	int32 ItemID = 0;
 
-	UFUNCTION(BlueprintNative,Category="Item")
-	void ApplyItemdata(const FItemData& NewData);
+	UFUNCTION(BlueprintNativeEvent,Category="Item")
+	void ApplyItemData(const FItemData& NewData);
 	virtual void ApplyItemData_Implementation(const FItemData& NewData);
 };

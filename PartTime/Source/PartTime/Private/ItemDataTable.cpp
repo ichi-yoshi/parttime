@@ -13,7 +13,7 @@ TArray<FItemData> ItemDataTable::ReadItemDataTable()
 {
 	TArray<FItemData> ItemList;
 
-	FString DbPath = FPaths::ProjectContentDir() / TEXT("Content/DataBase/ItemData.db");
+	FString DbPath = FPaths::ProjectContentDir() / TEXT("DataBase/ItemData.db");
 
 	FString Query = TEXT("SELECT * FROM Item");
 

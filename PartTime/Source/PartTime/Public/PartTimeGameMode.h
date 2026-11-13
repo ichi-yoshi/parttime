@@ -3,10 +3,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include PartTimeGameMode.generated.h"
+#include "GameFramework/GameModeBase.h"
+#include "PartTimeGameMode.generated.h"
 
-UClASS()
-class PARTTIME_API PartTimeGameMode
+UCLASS()
+class PARTTIME_API APartTimeGameMode : public AGameModeBase
 {
 	GENERATED_BODY()
 
