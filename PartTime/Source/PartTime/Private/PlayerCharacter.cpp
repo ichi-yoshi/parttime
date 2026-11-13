@@ -112,7 +112,7 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 bool APlayerCharacter::IsTargetInReach(FHitResult& OutHitResult) const
 {
 	// Line traceの始点と終点を、手のリーチ距離を考慮して計算
-	FVector StartPoint = FirstPersonCamera->GetComonentLocation();
+	FVector StartPoint = FirstPersonCamera->GetComponentLocation();
 	FVector CameraForward = FirstPersonCamera->GetForwardVector();
 	FVector EndPoint = StartPoint + (CameraForward * ReachDistance);
 
@@ -124,8 +124,8 @@ bool APlayerCharacter::IsTargetInReach(FHitResult& OutHitResult) const
 		OutHitResult,
 		StartPoint,
 		EndPoint,
-		ECC_Visiblity,// どのコリジョンチャンネルで判定するか
-		TracePrams// 除外リスト
+		ECC_Visibility,// どのコリジョンチャンネルで判定するか
+		TraceParams// 除外リスト
 	);
 }
 
@@ -171,7 +171,7 @@ void APlayerCharacter::Look(const FInputActionValue& Value)
 	FVector2D LookAxis = Value.Get<FVector2D>();
 
 	// 左右の視点移動(Yaw)
-	AddControllerYawInput(-LookAxis.X);
+	AddControllerYawInput(LookAxis.X);
 
 	// 上下の視点移動(Pitch)
 	AddControllerPitchInput(LookAxis.Y);
@@ -184,7 +184,7 @@ void APlayerCharacter::Scroll(const FInputActionValue& Value)
 
 	// スクロール量を取得して、HoldDistanceを更新
 	float ScrollValue = Value.Get<float>();
-	HoldDistance += ScrollValue * Scrollspeed;
+	HoldDistance += ScrollValue * ScrollSpeed;
 
 	HoldDistance = FMath::Clamp(HoldDistance, MinHoldDistance, MaxHoldDistance);
 }

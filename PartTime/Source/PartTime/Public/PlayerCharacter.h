@@ -65,7 +65,13 @@ private:
 
 	// 手のリーチ距離、もの近づける最小距離、遠ざける最大距離、スクロール速度
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grab", meta = (AllowPrivateAccess = "true"))
-	float ReachDistance = 200.0f, MinHoldDistance = 10.0f, MaxHoldDistance = 500.0f, Scrollspeed = 50.0f;
+	float ReachDistance = 200.0f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grab", meta = (AllowPrivateAccess = "true"))
+	float MinHoldDistance = 10.0f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grab", meta = (AllowPrivateAccess = "true"))
+	float MaxHoldDistance = 500.0f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grab", meta = (AllowPrivateAccess = "true"))
+	float ScrollSpeed = 50.0f;
 
 	// 現在ものを掴んでいる距離
 	float HoldDistance = 0.0f;
