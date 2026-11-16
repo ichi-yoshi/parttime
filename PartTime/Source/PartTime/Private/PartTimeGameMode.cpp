@@ -30,7 +30,7 @@ void APartTimeGameMode::BeginPlay()
 			if(ItemDataMap.Contains(ItemID))
 			{
 				const FItemData& ItemData = ItemDataMap[ItemID];
-				ItemActor->ApplyItemData_Implementation(ItemData);
+				ItemActor->ApplyItemData(ItemData);
 			}
 		}
 	}
