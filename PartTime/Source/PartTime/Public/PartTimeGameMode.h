@@ -12,5 +12,6 @@ class PARTTIME_API APartTimeGameMode : public AGameModeBase
 	GENERATED_BODY()
 
 public:
+	// ゲーム開始時に呼び出される関数
 	virtual void BeginPlay() override;
 };

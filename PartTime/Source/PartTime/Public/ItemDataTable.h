@@ -8,5 +8,6 @@ public:
 	ItemDataTable();
 	~ItemDataTable();
 
+	// データベースからアイテムデータを読み込む静的関数
 	static TArray<FItemData> ReadItemDataTable();
 };
