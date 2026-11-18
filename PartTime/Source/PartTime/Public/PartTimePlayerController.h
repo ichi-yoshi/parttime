@@ -45,6 +45,10 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UInputAction> ScrollAction = nullptr;
 
+	// 回転
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UInputAction> RotateAction = nullptr;
+
 
 	// クロスヘアウィジェットクラス
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Crosshair", meta = (AllowPrivateAccess = "true"))
@@ -64,6 +68,10 @@ private:
 	float MaxPitch = -10.0f;
 
 
+	// 回転用
+	bool bRotateHeld = false;// 右クリック押しているか
+
+
 	// 操作中PawnからGrabberを探す。見つからなければnullptr
 	UGrabberComponent* GetGrabber() const;
 
@@ -72,4 +80,6 @@ private:
 	void GrabStarted();
 	void GrabCompleted();
 	void Scroll(const FInputActionValue& Value);
+	void RotateStarted();
+	void RotateCompleted();
 };

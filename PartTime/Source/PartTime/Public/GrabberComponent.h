@@ -33,6 +33,8 @@ public:
 	void Grab();// 掴む
 	void Release();// 離す
 	void AdjustHoldDistance(float Delta);// 掴んでいるものの距離を調整
+	// マウス移動入力を受け取り、掴んでいるものを回転
+	void AddHoldRotation(const FVector2D& Delta);
 
 	bool IsGrabbing() const;// ものを掴んでいるか
 	
@@ -63,4 +65,12 @@ private:
 
 	// 現在ものを掴んでいる距離
 	float HoldDistance = 0.0f;
+
+
+	// 掴んだ時点のカメラから見たものの向き。回転入力で更新
+	FQuat HeldRelativeRotation = FQuat::Identity;
+
+	// 回転速度
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grab", meta = (AllowPrivateAccess = "true"))
+	float RotateSpeed = 2.0f;
 };

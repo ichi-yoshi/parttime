@@ -63,6 +63,13 @@ void APartTimePlayerController::SetupInputComponent()
 		{
 			EnhancedInput->BindAction(ScrollAction, ETriggerEvent::Triggered, this, &APartTimePlayerController::Scroll);
 		}
+
+		// 回転
+		if (RotateAction)
+		{
+			EnhancedInput->BindAction(RotateAction, ETriggerEvent::Started, this, &APartTimePlayerController::RotateStarted);
+			EnhancedInput->BindAction(RotateAction, ETriggerEvent::Completed, this, &APartTimePlayerController::RotateCompleted);
+		}
 	}
 }
 
@@ -106,6 +113,25 @@ void APartTimePlayerController::Scroll(const FInputActionValue& Value)
 void APartTimePlayerController::Look(const FInputActionValue& Value)
 {
 	const FVector2D LookAxis = Value.Get<FVector2D>();
+
+	// 右クリック中で、ものを掴んでいるときは視点ではなくものを回転させる
+	UGrabberComponent* Grabber = GetGrabber();
+	if (bRotateHeld && Grabber && Grabber->IsGrabbing())
+	{
+		Grabber->AddHoldRotation(LookAxis);
+		return;
+	}
+
 	AddYawInput(LookAxis.X);
 	AddPitchInput(LookAxis.Y);
+}
+
+void APartTimePlayerController::RotateStarted()
+{
+	bRotateHeld = true;
+}
+
+void APartTimePlayerController::RotateCompleted()
+{
+	bRotateHeld = false;
 }
