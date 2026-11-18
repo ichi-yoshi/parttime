@@ -3,10 +3,10 @@
 
 #include "GrabberComponent.h"
 #include "PhysicsEngine/PhysicsHandleComponent.h"
+#include "Camera/CameraComponent.h"
 #include "Components/PrimitiveComponent.h"
 #include "Engine/World.h"
 #include "GameFramework/Actor.h"
-#include "GameFramework/PlayerController.h"
 
 // Sets default values for this component's properties
 UGrabberComponent::UGrabberComponent()
@@ -24,8 +24,9 @@ void UGrabberComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// ...
-	
+	// フィジックスハンドルとカメラを保持しておく
+	PhysicsHandle = GetOwner()->FindComponentByClass<UPhysicsHandleComponent>();
+	ViewCamera = GetOwner()->FindComponentByClass<UCameraComponent>();
 }
 
 
@@ -34,43 +35,66 @@ void UGrabberComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAct
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	// ...
+	if (PhysicsHandle == nullptr || ViewCamera == nullptr) { return; }
+
+	// 掴んでいるものがあれば、目の前に追従させる
+	if (PhysicsHandle->GetGrabbedComponent() == nullptr) { return; }
+
+	// カメラ位置と正面ベクトルから、目の前の座標を計算
+	FVector CameraLocation = ViewCamera->GetComponentLocation();
+	FVector CameraForward = ViewCamera->GetForwardVector();
+	FVector TargetLocation = CameraLocation + CameraForward * HoldDistance;
+
+	// フィジックスハンドルのターゲット位置を更新
+	PhysicsHandle->SetTargetLocation(TargetLocation);
 }
 
 
 
 bool UGrabberComponent::IsTargetInReach(FHitResult& OutHitResult) const
 {
-	AActor* Owner = GetOwner();
-	if (!Owner) { return false; }
+	if (PhysicsHandle == nullptr || ViewCamera == nullptr) { return false; }
 
-	// 親アクタからプレイヤーコントローラーを取得
-	APawn* OwnerPawn = Cast<APawn>(Owner);
-	APlayerController* PC = OwnerPawn ? Cast<APlayerController>(OwnerPawn->GetController()) : nullptr;
-	if (!PC) { return false; }
+	// Line traceの始点と終点を、手のリーチ距離を考慮して計算
+	FVector StartPoint = ViewCamera->GetComponentLocation();
+	FVector CameraForward = ViewCamera->GetForwardVector();
+	FVector EndPoint = StartPoint + (CameraForward * ReachDistance);
 
-	// マウスカーソルの真下にあるオブジェクトを判定
-	if (!PC->GetHitResultUnderCursor(ECC_Visibility, false, OutHitResult)) { return false; }
+	// 自身のカプセルを無視するために、除外リストに自身を追加
+	FCollisionQueryParams TraceParams;
+	TraceParams.AddIgnoredActor(GetOwner());
 
-	// ヒットしたオブジェクトまでの距離が手のリーチ距離以内か判定
-	float Distance = FVector::Distance(Owner->GetActorLocation(), OutHitResult.ImpactPoint);
-	return Distance <= ReachDistance;
+	return GetWorld()->LineTraceSingleByChannel(
+		OutHitResult,
+		StartPoint,
+		EndPoint,
+		ECC_Visibility,// どのコリジョンチャンネルで判定するか
+		TraceParams// 除外リスト
+	);
 }
 
 void UGrabberComponent::Grab()
 {
-	if (!PhysicsHandle) { return; }
+	if (PhysicsHandle == nullptr || ViewCamera == nullptr) { return; }
 
-	// カーソル下に掴めるものがあるかチェック
+	// 目の前に掴めるものがあるかチェック
 	FHitResult HitResult;
 	if (!IsTargetInReach(HitResult)) { return; }
 
-	// 当たったコンポーネントが物理シミュレーション有効かチェック
+	// 当たったコンポーネントを取得
 	UPrimitiveComponent* HitComponent = HitResult.GetComponent();
-	if (!HitComponent || !HitComponent->IsSimulatingPhysics()) { return; }
+	if (HitComponent == nullptr) { return; }
 
-	// 掴む処理
+	// 掴めるものかチェック（物理シミュレーションされているか）
+	if (!HitComponent->IsSimulatingPhysics()) { return; }
+
+	// カメラとものの距離を、最小距離と最大距離の範囲内に収める
+	FVector CameraLocation = ViewCamera->GetComponentLocation();
 	FVector ComponentLocation = HitComponent->GetComponentLocation();
+	HoldDistance = FVector::Distance(CameraLocation, ComponentLocation);
+	HoldDistance = FMath::Clamp(HoldDistance, MinHoldDistance, MaxHoldDistance);
+
+	// 指定した場所と角度でコンポーネントを掴む
 	PhysicsHandle->GrabComponentAtLocationWithRotation(
 		HitComponent,
 		NAME_None,// どのボーンを掴むか(スタティックメッシュはNone)
@@ -81,6 +105,8 @@ void UGrabberComponent::Grab()
 
 void UGrabberComponent::Release()
 {
+	if (PhysicsHandle == nullptr || ViewCamera == nullptr) { return; }
+
 	// ものを掴んでいるか
 	if (PhysicsHandle->GetGrabbedComponent() == nullptr) { return; }
 
@@ -88,25 +114,23 @@ void UGrabberComponent::Release()
 	PhysicsHandle->ReleaseComponent();
 }
 
-//void UGrabberComponent::Look(const FInputActionValue& Value)
-//{
-//	FVector2D LookAxis = Value.Get<FVector2D>();
-//
-//	// 左右の視点移動(Yaw)
-//	AddControllerYawInput(LookAxis.X);
-//
-//	// 上下の視点移動(Pitch)
-//	AddControllerPitchInput(LookAxis.Y);
-//}
-
-void UGrabberComponent::Scroll(const FInputActionValue& Value)
+void UGrabberComponent::AdjustHoldDistance(float Delta)
 {
+	if (PhysicsHandle == nullptr || ViewCamera == nullptr) { return; }
+
 	// ものを掴んでいるか
 	if (PhysicsHandle->GetGrabbedComponent() == nullptr) { return; }
 
 	// スクロール量を取得して、HoldDistanceを更新
-	float ScrollValue = Value.Get<float>();
-	HoldDistance += ScrollValue * ScrollSpeed;
+	HoldDistance += Delta * ScrollSpeed;
 
 	HoldDistance = FMath::Clamp(HoldDistance, MinHoldDistance, MaxHoldDistance);
+}
+
+bool UGrabberComponent::IsGrabbing() const
+{
+	if (PhysicsHandle == nullptr || ViewCamera == nullptr) { return false; }
+
+	// ものを掴んでいるか
+	return PhysicsHandle->GetGrabbedComponent() != nullptr;
 }

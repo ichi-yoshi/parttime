@@ -9,11 +9,13 @@
 #include "Engine/LocalPlayer.h"
 #include "Blueprint/UserWidget.h"
 
+#include "GrabberComponent.h"
+
 // Sets default values
 APlayerCharacter::APlayerCharacter()
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
 
 	// インスタンス生成
 	// カメラ
@@ -27,6 +29,8 @@ APlayerCharacter::APlayerCharacter()
 
 	// フィジックスハンドル
 	PhysicsHandle = CreateDefaultSubobject<UPhysicsHandleComponent>(TEXT("PhysicsHandle"));
+
+	Grabber = CreateDefaultSubobject<UGrabberComponent>(TEXT("Grabber"));
 }
 
 // Called when the game starts or when spawned
@@ -48,23 +52,6 @@ void APlayerCharacter::BeginPlay()
 			}
 		}
 	}
-}
-
-// Called every frame
-void APlayerCharacter::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
-	// 掴んでいるものがあれば、目の前に追従させる
-	if (PhysicsHandle->GetGrabbedComponent() == nullptr) { return; }
-
-	// カメラ位置と正面ベクトルから、目の前の座標を計算
-	FVector CameraLocation = FirstPersonCamera->GetComponentLocation();
-	FVector CameraForward = FirstPersonCamera->GetForwardVector();
-	FVector TargetLocation = CameraLocation + CameraForward * HoldDistance;
-
-	// フィジックスハンドルのターゲット位置を更新
-	PhysicsHandle->SetTargetLocation(TargetLocation);
 }
 
 // Called to bind functionality to input
@@ -109,61 +96,19 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	}
 }
 
-bool APlayerCharacter::IsTargetInReach(FHitResult& OutHitResult) const
-{
-	// Line traceの始点と終点を、手のリーチ距離を考慮して計算
-	FVector StartPoint = FirstPersonCamera->GetComponentLocation();
-	FVector CameraForward = FirstPersonCamera->GetForwardVector();
-	FVector EndPoint = StartPoint + (CameraForward * ReachDistance);
-
-	// 自身のカプセルを無視するために、除外リストに自身を追加
-	FCollisionQueryParams TraceParams;
-	TraceParams.AddIgnoredActor(this);
-
-	return GetWorld()->LineTraceSingleByChannel(
-		OutHitResult,
-		StartPoint,
-		EndPoint,
-		ECC_Visibility,// どのコリジョンチャンネルで判定するか
-		TraceParams// 除外リスト
-	);
-}
-
 void APlayerCharacter::Grab()
 {
-	// 目の前に掴めるものがあるかチェック
-	FHitResult HitResult;
-	if (!IsTargetInReach(HitResult)) { return; }
-
-	// 当たったコンポーネントを取得
-	UPrimitiveComponent* HitComponent = HitResult.GetComponent();
-	if (HitComponent == nullptr) { return; }
-
-	// 掴めるものかチェック（物理シミュレーションされているか）
-	if (!HitComponent->IsSimulatingPhysics()) { return; }
-
-	// カメラとものの距離を、最小距離と最大距離の範囲内に収める
-	FVector CameraLocation = FirstPersonCamera->GetComponentLocation();
-	FVector ComponentLocation = HitComponent->GetComponentLocation();
-	HoldDistance = FVector::Distance(CameraLocation, ComponentLocation);
-	HoldDistance = FMath::Clamp(HoldDistance, MinHoldDistance, MaxHoldDistance);
-
-	// 指定した場所と角度でコンポーネントを掴む
-	PhysicsHandle->GrabComponentAtLocationWithRotation(
-		HitComponent,
-		NAME_None,// どのボーンを掴むか(スタティックメッシュはNone)
-		ComponentLocation,
-		HitComponent->GetComponentRotation()
-	);
+	Grabber->Grab();
 }
 
 void APlayerCharacter::Release()
 {
-	// ものを掴んでいるか
-	if (PhysicsHandle->GetGrabbedComponent() == nullptr) { return; }
+	Grabber->Release();
+}
 
-	// ものを離す
-	PhysicsHandle->ReleaseComponent();
+void APlayerCharacter::Scroll(const FInputActionValue& Value)
+{
+	Grabber->AdjustHoldDistance(Value.Get<float>());
 }
 
 void APlayerCharacter::Look(const FInputActionValue& Value)
@@ -175,17 +120,5 @@ void APlayerCharacter::Look(const FInputActionValue& Value)
 
 	// 上下の視点移動(Pitch)
 	AddControllerPitchInput(LookAxis.Y);
-}
-
-void APlayerCharacter::Scroll(const FInputActionValue& Value)
-{
-	// ものを掴んでいるか
-	if (PhysicsHandle->GetGrabbedComponent() == nullptr) { return; }
-
-	// スクロール量を取得して、HoldDistanceを更新
-	float ScrollValue = Value.Get<float>();
-	HoldDistance += ScrollValue * ScrollSpeed;
-
-	HoldDistance = FMath::Clamp(HoldDistance, MinHoldDistance, MaxHoldDistance);
 }
 

@@ -4,11 +4,10 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
-#include "InputActionValue.h"
 #include "GrabberComponent.generated.h"
 
 class UPhysicsHandleComponent;
-class UPrimitiveComponent;
+class UCameraComponent;
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class PARTTIME_API UGrabberComponent : public UActorComponent
@@ -27,6 +26,15 @@ public:
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
+
+
+public:
+	// マウス操作処理
+	void Grab();// 掴む
+	void Release();// 離す
+	void AdjustHoldDistance(float Delta);// 掴んでいるものの距離を調整
+
+	bool IsGrabbing() const;// ものを掴んでいるか
 	
 private:
 	// 手のリーチ範囲内のターゲットがあるか判定
@@ -34,16 +42,12 @@ private:
 	// @return:ヒットしたらtrue
 	bool IsTargetInReach(FHitResult& OutHitResult) const;
 
-	// マウス操作処理
-	void Grab();// 掴む
-	void Release();// 離す
-	//void Look(const FInputActionValue& Value);// 視点移動
-	void Scroll(const FInputActionValue& Value);// スクロール(奥行き)
-
-
 
 	UPROPERTY()
 	TObjectPtr<UPhysicsHandleComponent> PhysicsHandle = nullptr;
+
+	UPROPERTY()
+	TObjectPtr<UCameraComponent> ViewCamera = nullptr;
 
 	// 手のリーチ距離
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grab", meta = (AllowPrivateAccess = "true"))

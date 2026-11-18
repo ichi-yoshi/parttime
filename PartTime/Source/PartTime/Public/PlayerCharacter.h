@@ -13,6 +13,8 @@ class UInputAction;
 class UInputMappingContext;
 class UUserWidget;
 
+class UGrabberComponent;
+
 UCLASS()
 class PARTTIME_API APlayerCharacter : public ACharacter
 {
@@ -27,55 +29,29 @@ protected:
 	virtual void BeginPlay() override;
 
 public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
-
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 
+
 private:
-	// 手のリーチ範囲内のターゲットがあるか判定
-	// @param OutHitResult:ヒットした部品・座標などのデータ構造体(参照渡し)
-	// @return:ヒットしたらtrue
-	bool IsTargetInReach(FHitResult& OutHitResult) const;
-
-	// マウス操作処理
-	// 掴む
 	void Grab();
-
-	// 離す
 	void Release();
-
-	// 視点移動
-	void Look(const FInputActionValue& Value);
-
-	// スクロール(奥行き)
 	void Scroll(const FInputActionValue& Value);
+	void Look(const FInputActionValue& Value);// 視点移動
+
 
 
 	// 一人称カメラ
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UCameraComponent> FirstPersonCamera = nullptr;
 
-
 	// 物理グラブフィジックスハンドル
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Grab", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UPhysicsHandleComponent> PhysicsHandle = nullptr;
 
-	// 手のリーチ距離、もの近づける最小距離、遠ざける最大距離、スクロール速度
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grab", meta = (AllowPrivateAccess = "true"))
-	float ReachDistance = 200.0f;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grab", meta = (AllowPrivateAccess = "true"))
-	float MinHoldDistance = 10.0f;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grab", meta = (AllowPrivateAccess = "true"))
-	float MaxHoldDistance = 500.0f;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grab", meta = (AllowPrivateAccess = "true"))
-	float ScrollSpeed = 50.0f;
-
-	// 現在ものを掴んでいる距離
-	float HoldDistance = 0.0f;
-
+	UPROPERTY(VisibleAnywhere)
+	TObjectPtr<UGrabberComponent> Grabber = nullptr;
 
 	// インプットアクション
 	// グラブ
