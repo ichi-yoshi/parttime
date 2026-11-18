@@ -2,4 +2,110 @@
 
 
 #include "PartTimePlayerController.h"
+#include "EnhancedInputSubsystems.h"
+#include "Engine/LocalPlayer.h"
+#include "Blueprint/UserWidget.h"
+#include "EnhancedInputComponent.h"
+#include "GrabberComponent.h"
+#include "GameFramework/Pawn.h"
 
+void APartTimePlayerController::BeginPlay()
+{
+	Super::BeginPlay();
+
+	if (IsLocalPlayerController())
+	{
+		// IMCを有効化
+		// ローカルプレイヤーからサブシステムを取得して、IMCを追加
+		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(GetLocalPlayer()))
+		{
+			if (InputMappingContext)
+			{
+				Subsystem->AddMappingContext(InputMappingContext, 0);
+			}
+		}
+
+		// クロスヘアを生成して、画面に表示
+		if (CrosshairWidgetClass)
+		{
+			// ウィジェットを生成して、画面に追加
+			CrosshairWidget = CreateWidget<UUserWidget>(this, CrosshairWidgetClass);
+			if (CrosshairWidget)
+			{
+				CrosshairWidget->AddToViewport();
+			}
+		}
+	}
+}
+
+void APartTimePlayerController::SetupInputComponent()
+{
+	Super::SetupInputComponent();
+
+	// Enhanced Input Componentにキャストして、入力アクションをバインド
+	if (UEnhancedInputComponent* EnhancedInput = Cast<UEnhancedInputComponent>(InputComponent))
+	{
+		// グラブアクション
+		if (GrabAction)
+		{
+			EnhancedInput->BindAction(GrabAction, ETriggerEvent::Started, this, &APartTimePlayerController::GrabStarted);
+			EnhancedInput->BindAction(GrabAction, ETriggerEvent::Completed, this, &APartTimePlayerController::GrabCompleted);
+		}
+
+		// 視点移動
+		if (LookAction)
+		{
+			EnhancedInput->BindAction(LookAction, ETriggerEvent::Triggered, this, &APartTimePlayerController::Look);
+		}
+
+		// スクロール
+		if (ScrollAction)
+		{
+			EnhancedInput->BindAction(ScrollAction, ETriggerEvent::Triggered, this, &APartTimePlayerController::Scroll);
+		}
+	}
+}
+
+void APartTimePlayerController::OnPossess(APawn* InPawn)
+{
+	Super::OnPossess(InPawn);
+
+	if (InPawn == nullptr) { return; }
+
+	// Pawnを所持したときに、見下ろしの角度にする
+	SetControlRotation(FRotator(InitialPitch, InPawn->GetActorRotation().Yaw, 0.0f));
+	
+	if (PlayerCameraManager)
+	{
+		PlayerCameraManager->ViewPitchMin = MinPitch;
+		PlayerCameraManager->ViewPitchMax = MaxPitch;
+	}
+}
+
+UGrabberComponent* APartTimePlayerController::GetGrabber() const
+{
+	APawn* ControllerPawn = GetPawn();
+	return ControllerPawn ? ControllerPawn->FindComponentByClass<UGrabberComponent>() : nullptr;
+}
+
+void APartTimePlayerController::GrabStarted()
+{
+	if (UGrabberComponent* Grabber = GetGrabber()) { Grabber->Grab(); }
+}
+
+void APartTimePlayerController::GrabCompleted()
+{
+	if (UGrabberComponent* Grabber = GetGrabber()) { Grabber->Release(); }
+}
+
+void APartTimePlayerController::Scroll(const FInputActionValue& Value)
+{
+	if (UGrabberComponent* Grabber = GetGrabber()) { Grabber->AdjustHoldDistance(Value.Get<float>()); }
+}
+
+void APartTimePlayerController::Look(const FInputActionValue& Value)
+{
+	const FVector2D LookAxis = Value.Get<FVector2D>();
+	AddYawInput(LookAxis.X);
+	AddPitchInput(LookAxis.Y);
+}
