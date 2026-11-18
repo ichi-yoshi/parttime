@@ -8,6 +8,8 @@
 #include "Engine/World.h"
 #include "GameFramework/Actor.h"
 
+#include "PartTimeCollisionChannels.h"
+
 // Sets default values for this component's properties
 UGrabberComponent::UGrabberComponent()
 {
@@ -70,7 +72,7 @@ bool UGrabberComponent::IsTargetInReach(FHitResult& OutHitResult) const
 		OutHitResult,
 		StartPoint,
 		EndPoint,
-		ECC_Visibility,// どのコリジョンチャンネルで判定するか
+		ECC_Grabbable,// 商品だけがBlockするチャンネル
 		TraceParams// 除外リスト
 	);
 }
@@ -143,6 +145,7 @@ void UGrabberComponent::AddHoldRotation(const FVector2D& Delta)
 
 	// 左から掛けるとカメラから見た軸で回る
 	HeldRelativeRotation = YawDelta * PitchDelta * HeldRelativeRotation;
+	HeldRelativeRotation.Normalize();// 誤差を防ぐために正規化
 }
 
 bool UGrabberComponent::IsGrabbing() const
