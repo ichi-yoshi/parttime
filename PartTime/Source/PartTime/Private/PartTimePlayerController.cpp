@@ -8,6 +8,8 @@
 #include "EnhancedInputComponent.h"
 #include "GrabberComponent.h"
 #include "GameFramework/Pawn.h"
+#include "ItemInfoWidget.h"
+#include "ItemActor.h"
 
 void APartTimePlayerController::BeginPlay()
 {
@@ -35,6 +37,17 @@ void APartTimePlayerController::BeginPlay()
 				CrosshairWidget->AddToViewport();
 			}
 		}
+
+		// 商品情報ウィジェットを生成して、画面に表示
+		if (ItemInfoWidgetClass)
+		{
+			// ウィジェットを生成して、画面に追加
+			ItemInfoWidget = CreateWidget<UItemInfoWidget>(this, ItemInfoWidgetClass);
+			if (ItemInfoWidget)
+			{
+				ItemInfoWidget->AddToViewport();
+			}
+		}	
 	}
 }
 
@@ -87,6 +100,12 @@ void APartTimePlayerController::OnPossess(APawn* InPawn)
 		PlayerCameraManager->ViewPitchMin = MinPitch;
 		PlayerCameraManager->ViewPitchMax = MaxPitch;
 	}
+
+	// Grabberの掴んだものが変わった通知を受け取るように登録
+	if (UGrabberComponent* Grabber = InPawn->FindComponentByClass<UGrabberComponent>())
+	{
+		Grabber->OnHeldItemChanged.AddDynamic(this, &APartTimePlayerController::HandleHeldItemChanged);
+	}
 }
 
 UGrabberComponent* APartTimePlayerController::GetGrabber() const
@@ -134,4 +153,20 @@ void APartTimePlayerController::RotateStarted()
 void APartTimePlayerController::RotateCompleted()
 {
 	bRotateHeld = false;
+}
+
+void APartTimePlayerController::HandleHeldItemChanged(AItemActor* HeldItem)
+{
+	if (ItemInfoWidget == nullptr) { return; }
+
+	if (HeldItem)
+	{
+		// 商品を掴んだらその商品のデータを渡して表示
+		ItemInfoWidget->ShowItemInfo(HeldItem->ItemData);
+	}
+	else
+	{
+		// 商品を離したら非表示
+		ItemInfoWidget->HideItemInfo();
+	}
 }

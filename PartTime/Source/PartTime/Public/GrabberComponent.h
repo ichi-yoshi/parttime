@@ -9,6 +9,9 @@
 class UPhysicsHandleComponent;
 class UCameraComponent;
 
+class AItemActor;
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnHeldItemChanged, AItemActor*, HeldItem);
+
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class PARTTIME_API UGrabberComponent : public UActorComponent
 {
@@ -38,6 +41,9 @@ public:
 
 	bool IsGrabbing() const;// ものを掴んでいるか
 	
+	UPROPERTY(BlueprintAssignable, Category = "Grab")
+	FOnHeldItemChanged OnHeldItemChanged;
+
 private:
 	// 手のリーチ範囲内のターゲットがあるか判定
 	// @param OutHitResult:ヒットした部品・座標などのデータ構造体(参照渡し)

@@ -9,6 +9,7 @@
 #include "GameFramework/Actor.h"
 
 #include "PartTimeCollisionChannels.h"
+#include "ItemActor.h"
 
 // Sets default values for this component's properties
 UGrabberComponent::UGrabberComponent()
@@ -109,6 +110,9 @@ void UGrabberComponent::Grab()
 		GrabLocation,
 		HitComponent->GetComponentRotation()
 	);
+
+	// 掴んだものが変わったことを通知
+	OnHeldItemChanged.Broadcast(Cast<AItemActor>(HitComponent->GetOwner()));
 }
 
 void UGrabberComponent::Release()
@@ -120,6 +124,9 @@ void UGrabberComponent::Release()
 
 	// ものを離す
 	PhysicsHandle->ReleaseComponent();
+
+	// nullを通知することで、掴んでいるものがなくなった
+	OnHeldItemChanged.Broadcast(nullptr);
 }
 
 void UGrabberComponent::AdjustHoldDistance(float Delta)

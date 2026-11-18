@@ -9,7 +9,8 @@
 			"Type": "Runtime",
 			"LoadingPhase": "Default",
 			"AdditionalDependencies": [
-				"Engine"
+				"Engine",
+				"UMG"
 			]
 		}
 	],
@@ -25,13 +26,13 @@
 				"Win64"
 			]
 		},
-                {
+		{
 			"Name": "SQLiteSupport",
 			"Enabled": true
 		},
 		{
 			"Name": "SQLiteCore",
 			"Enabled": true
-                }
+		}
 	]
 }
