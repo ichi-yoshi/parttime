@@ -111,8 +111,12 @@ void UGrabberComponent::Grab()
 		HitComponent->GetComponentRotation()
 	);
 
+	// 商品を掴まれている状態にする
+	AItemActor* HeldItem = Cast<AItemActor>(HitComponent->GetOwner());
+	if (HeldItem != nullptr) { HeldItem->SetHeld(true); }
+
 	// 掴んだものが変わったことを通知
-	OnHeldItemChanged.Broadcast(Cast<AItemActor>(HitComponent->GetOwner()));
+	OnHeldItemChanged.Broadcast(HeldItem);
 }
 
 void UGrabberComponent::Release()
@@ -120,7 +124,14 @@ void UGrabberComponent::Release()
 	if (PhysicsHandle == nullptr || ViewCamera == nullptr) { return; }
 
 	// ものを掴んでいるか
-	if (PhysicsHandle->GetGrabbedComponent() == nullptr) { return; }
+	UPrimitiveComponent* GrabbedComponent = PhysicsHandle->GetGrabbedComponent();
+	if (GrabbedComponent == nullptr) { return; }
+
+	// 離す前に、商品を掴まれていない状態にする
+	if (AItemActor* HeldItem = Cast<AItemActor>(GrabbedComponent->GetOwner()))
+	{
+		HeldItem->SetHeld(false);
+	}
 
 	// ものを離す
 	PhysicsHandle->ReleaseComponent();
