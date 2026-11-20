@@ -9,6 +9,9 @@
 class UPhysicsHandleComponent;
 class UCameraComponent;
 
+class AItemActor;
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnHeldItemChanged, AItemActor*, HeldItem);
+
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class PARTTIME_API UGrabberComponent : public UActorComponent
 {
@@ -33,9 +36,14 @@ public:
 	void Grab();// 掴む
 	void Release();// 離す
 	void AdjustHoldDistance(float Delta);// 掴んでいるものの距離を調整
+	// マウス移動入力を受け取り、掴んでいるものを回転
+	void AddHoldRotation(const FVector2D& Delta);
 
 	bool IsGrabbing() const;// ものを掴んでいるか
 	
+	UPROPERTY(BlueprintAssignable, Category = "Grab")
+	FOnHeldItemChanged OnHeldItemChanged;
+
 private:
 	// 手のリーチ範囲内のターゲットがあるか判定
 	// @param OutHitResult:ヒットした部品・座標などのデータ構造体(参照渡し)
@@ -63,4 +71,12 @@ private:
 
 	// 現在ものを掴んでいる距離
 	float HoldDistance = 0.0f;
+
+
+	// 掴んだ時点のカメラから見たものの向き。回転入力で更新
+	FQuat HeldRelativeRotation = FQuat::Identity;
+
+	// 回転速度
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grab", meta = (AllowPrivateAccess = "true"))
+	float RotateSpeed = 2.0f;
 };
