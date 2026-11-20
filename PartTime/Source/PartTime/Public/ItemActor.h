@@ -29,8 +29,20 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item")
 	FItemData ItemData;	// データベースから取得したアイテムデータを保持するためのプロパティ
 
+
+
+	// 掴まれているか設定。GrabberComponentが掴む・離すときに呼ぶ
+	void SetHeld(bool BNewHeld) { bIsHeld = BNewHeld; }
+
+	// 掴まれているか
+	UFUNCTION(BlueprintPure, Category = "Item")
+	bool IsHeld() const { return bIsHeld; }
+
 private:
 	// 商品の見た目・物理・コリジョンを担当するメッシュ(ルートコンポーネント)
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UStaticMeshComponent> Mesh = nullptr;
+
+	// プレイヤーに掴まれているか。カゴ判定で掴み中の商品を除くために使用
+	bool bIsHeld = false;
 };
