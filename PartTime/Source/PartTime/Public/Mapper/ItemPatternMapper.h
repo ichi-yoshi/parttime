@@ -4,10 +4,10 @@
 #include "DataMapper.h"
 #include "Model/ItemPatternModel.h"
 
-class PARTTIME_API ItemPatternMapper : public DataMapper<FItemPatternModel>
+class PARTTIME_API ItemPatternMapper : public IDataMapper<FItemPatternModel>
 {
 public:
-	virtual FItemPatternModel MapRow(const FSQLiteRow& Row) override 
+	virtual FItemPatternModel MapRow(const FSQLiteRow& Row) const override 
 	{
 		FItemPatternModel ItemPattern;
 		ItemPattern.BasketID = Row.GetString(TEXT("Basket"));

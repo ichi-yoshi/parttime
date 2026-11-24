@@ -1,10 +1,8 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "PartTimeGameMode.h"
 #include "Kismet/GameplayStatics.h"
 #include "ItemDataTable.h"
 #include "ItemActor.h"
+#include "BasketActor.h"
 
 void APartTimeGameMode::BeginPlay()
 {
@@ -12,9 +10,7 @@ void APartTimeGameMode::BeginPlay()
 
 	// データベースからアイテムデータを読み込む
 	TArray<FItemData> ItemDataList = ItemDataTable::ReadItemDataTable();
-
-	// アイテムIDをキー、FItemDataを値とするマップを作成
-	TMap<int32, FItemData> ItemDataMap;
+	ItemDataMap.Empty();
 	for (const FItemData& ItemData : ItemDataList)
 	{
 		// マップにアイテムデータを追加
@@ -39,6 +35,31 @@ void APartTimeGameMode::BeginPlay()
 				// マップから対応するアイテムデータを取得して、AItemActorに適用
 				const FItemData& ItemData = ItemDataMap[ItemID];
 				ItemActor->ApplyItemData(ItemData);
+			}
+		}
+	}
+
+	TArray<FItemPatternModel> ItemPatternDataList = ItemDataTable::ReadItemPatternTable();
+	ItemPatternDataMap.Empty();
+	for (const FItemPatternModel& ItemPattern : ItemPatternDataList)
+	{
+		// マップにアイテムパターンデータを追加
+		ItemPatternDataMap.Add(ItemPattern.BasketID, ItemPattern.ItemIDs);
+	}
+
+	TArray<AActor*> FoundBaskets;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ABasketActor::StaticClass(), FoundBaskets);
+	for(AActor* Actor : FoundBaskets)
+	{
+		if(ABasketActor* BasketActor = Cast<ABasketActor>(Actor))
+		{
+			if(const TArray<int32>* FoundItemIDs = ItemPatternDataMap.Find(BasketActor->BasketID))
+			{
+				BasketActor->SpawnItemsInBasket(*FoundItemIDs);
+			}
+			else
+			{
+				UE_LOG(LogTemp, Warning, TEXT("ItemPattern to BasketID '%s' No Data"), *BasketActor->BasketID);
 			}
 		}
 	}
