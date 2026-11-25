@@ -20,7 +20,7 @@ public:
 
 	// アイテムのブループリントが格納されているフォルダのパス
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Basket")
-	FString ItemBlueprintFolder = TEXT("/Game/Aseet/Syouhin");
+	FString ItemBlueprintFolder = TEXT("/Game/Asset/Syouhin");
 
 	// アイテムを配置するためのオフセット配列
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Basket")
