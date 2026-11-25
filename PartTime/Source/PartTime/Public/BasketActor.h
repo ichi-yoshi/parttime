@@ -39,9 +39,11 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Basket")
 	UStaticMeshComponent* BasketMesh;
 
+	// アイテムを配置するためのスロットコンポーネントの配列
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Basket")
 	TArray<USceneComponent*> ItemSlots;
 private:
+	// スポーンしたアイテムアクターのリスト
 	UPROPERTY()
 	TArray<AItemActor*> SpawnedItemActors;
 };

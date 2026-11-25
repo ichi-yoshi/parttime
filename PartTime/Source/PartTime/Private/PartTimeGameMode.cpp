@@ -47,6 +47,7 @@ void APartTimeGameMode::BeginPlay()
 		ItemPatternDataMap.Add(ItemPattern.BasketID, ItemPattern.ItemIDs);
 	}
 
+	// ワールド内のすべてのABasketActorを取得し、対応するアイテムパターンデータを適用
 	TArray<AActor*> FoundBaskets;
 	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ABasketActor::StaticClass(), FoundBaskets);
 	for(AActor* Actor : FoundBaskets)

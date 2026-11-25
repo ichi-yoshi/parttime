@@ -15,6 +15,7 @@ public:
 	// ゲーム開始時に呼び出される関数
 	virtual void BeginPlay() override;
 
+	// データベースからアイテムデータをロードする関数
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Database")
 	TMap<int32, FItemData> ItemDataMap; // アイテムIDをキー、FItemDataを値とするマップ
 	TMap<FString, TArray<int32>> ItemPatternDataMap; // バスケットIDをキー、FItemPatternDataを値とするマップ

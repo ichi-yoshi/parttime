@@ -16,6 +16,7 @@ public:
 		// 1から10までのアイテムIDを取得してItemIDsに追加
 		for(int32 i = 1; i <= 10; ++i) 
 		{
+			// "ItemID1", "ItemID2", ..., "ItemID10" の列名を生成
 			FString ColumnName = FString::Printf(TEXT("ItemID%d"), i);
 			int32 ItemID = Row.GetInt(ColumnName, 0);
 
