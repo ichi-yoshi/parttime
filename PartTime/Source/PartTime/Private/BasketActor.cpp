@@ -30,21 +30,27 @@ void ABasketActor::ClearBasket()
 	SpawnedItemActors.Empty();
 }
 
-void ABasketActor::SpawnItemsInBasket(const TArray<int32>& ItemIDs) 
+void ABasketActor::SpawnItemsInBasket(const TArray<FItemData>& ItemsToSpawn) 
 {
 	ClearBasket();
 
 	UWorld* World = GetWorld();
 	if(!World) { return; }
 
-	for(int32 Index = 0; Index < ItemIDs.Num(); ++Index)
+	for(int32 Index = 0; Index < ItemsToSpawn.Num(); ++Index)
 	{
-		int32 TargetItemID = ItemIDs[Index];
+		const FItemData& Data = ItemsToSpawn[Index];
 
-		TSubclassOf<AItemActor>* ActorClassPtr = ItemActorClassMap.Find(TargetItemID);
-		if(!ActorClassPtr || !(*ActorClassPtr))
+		// DBの ItemName ("apple" など) からBPパスを自動生成
+		// 例: "/Game/Items/BP_Item_apple.BP_Item_apple_C"
+		FString AssetName = FString::Printf(TEXT("BP_Item_%s"), *Data.ItemName);
+		FString ClassPath = FString::Printf(TEXT("%s/%s.%s_C"), *ItemBlueprintFolder, *AssetName, *AssetName);
+
+		// クラスを動的にロード
+		UClass* LoadedClass = StaticLoadClass(AItemActor::StaticClass(), nullptr, *ClassPath);
+		if(!LoadedClass)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Basket '%s': ItemID %d No Class"), *BasketID, TargetItemID);
+			UE_LOG(LogTemp, Warning, TEXT("No class found: %s (ItemID: %d)"), *ClassPath, Data.ID);
 			continue;
 		}
 
@@ -57,11 +63,10 @@ void ABasketActor::SpawnItemsInBasket(const TArray<int32>& ItemIDs)
 		FActorSpawnParameters SpawnParams;
 		SpawnParams.Owner = this;
 
-		AItemActor* SpawnedItem = World->SpawnActor<AItemActor>(*ActorClassPtr, SpawnTransform, SpawnParams);
+		AItemActor* SpawnedItem = World->SpawnActor<AItemActor>(LoadedClass, SpawnTransform, SpawnParams);
 		if(SpawnedItem)
 		{
-			// スポーンした AItemActor に ItemID をセットしておく（後の GameMode ループで ApplyItemData される）
-			SpawnedItem->ItemID = TargetItemID;
+			SpawnedItem->ItemID = Data.ID;
 			SpawnedItem->AttachToActor(this, FAttachmentTransformRules::KeepWorldTransform);
 			SpawnedItemActors.Add(SpawnedItem);
 		}

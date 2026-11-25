@@ -55,11 +55,17 @@ void APartTimeGameMode::BeginPlay()
 		{
 			if(const TArray<int32>* FoundItemIDs = ItemPatternDataMap.Find(BasketActor->BasketID))
 			{
-				BasketActor->SpawnItemsInBasket(*FoundItemIDs);
-			}
-			else
-			{
-				UE_LOG(LogTemp, Warning, TEXT("ItemPattern to BasketID '%s' No Data"), *BasketActor->BasketID);
+				// IDの配列を FItemData の配列に変換して渡す
+				TArray<FItemData> TargetItems;
+				for(int32 ID : *FoundItemIDs)
+				{
+					if(const FItemData* Data = ItemDataMap.Find(ID))
+					{
+						TargetItems.Add(*Data);
+					}
+				}
+
+				BasketActor->SpawnItemsInBasket(TargetItems);
 			}
 		}
 	}
