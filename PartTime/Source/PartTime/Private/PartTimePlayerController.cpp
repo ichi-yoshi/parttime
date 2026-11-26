@@ -83,6 +83,12 @@ void APartTimePlayerController::SetupInputComponent()
 			EnhancedInput->BindAction(RotateAction, ETriggerEvent::Started, this, &APartTimePlayerController::RotateStarted);
 			EnhancedInput->BindAction(RotateAction, ETriggerEvent::Completed, this, &APartTimePlayerController::RotateCompleted);
 		}
+
+		// 移動
+		if (MoveAction)
+		{
+			EnhancedInput->BindAction(MoveAction, ETriggerEvent::Triggered, this, &APartTimePlayerController::Move);
+		}
 	}
 }
 
@@ -169,4 +175,22 @@ void APartTimePlayerController::HandleHeldItemChanged(AItemActor* HeldItem)
 		// 商品を離したら非表示
 		ItemInfoWidget->HideItemInfo();
 	}
+}
+
+void APartTimePlayerController::Move(const FInputActionValue& Value)
+{
+	APawn* ControlledPawn = GetPawn();
+	if (ControlledPawn == nullptr) { return; }
+
+	// X:左右、Y:前後
+	const FVector2D MoveAxis = Value.Get<FVector2D>();
+
+	// 視点の左右の向き（Yaw）を使って、見下ろしでも地面と平行に移動するようにする
+	const FRotator YawRotation(0.0f, GetControlRotation().Yaw, 0.0f);
+	const FVector Forward = YawRotation.RotateVector(FVector::ForwardVector);
+	const FVector Right = YawRotation.RotateVector(FVector::RightVector);
+
+	// 移動方向を渡すと、CharacterMovementが速度を計算して動かす
+	ControlledPawn->AddMovementInput(Forward, MoveAxis.Y);
+	ControlledPawn->AddMovementInput(Right, MoveAxis.X);
 }

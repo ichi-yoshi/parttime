@@ -32,7 +32,7 @@ public:
 
 
 	// 掴まれているか設定。GrabberComponentが掴む・離すときに呼ぶ
-	void SetHeld(bool BNewHeld) { bIsHeld = BNewHeld; }
+	void SetHeld(bool bNewHeld) { bIsHeld = bNewHeld; }
 
 	// 掴まれているか
 	UFUNCTION(BlueprintPure, Category = "Item")
