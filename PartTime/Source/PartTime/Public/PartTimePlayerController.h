@@ -43,18 +43,18 @@ private:
 	// グラブ
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UInputAction> GrabAction = nullptr;
-
 	// 視点移動
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UInputAction> LookAction = nullptr;
-
 	// スクロール
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UInputAction> ScrollAction = nullptr;
-
 	// 回転
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UInputAction> RotateAction = nullptr;
+	// 移動
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UInputAction> MoveAction = nullptr;
 
 	// ウィジェットクラス
 	// クロスヘア
@@ -95,4 +95,5 @@ private:
 	void Scroll(const FInputActionValue& Value);
 	void RotateStarted();
 	void RotateCompleted();
+	void Move(const FInputActionValue& Value);
 };

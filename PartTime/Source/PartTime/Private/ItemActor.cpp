@@ -12,6 +12,9 @@ AItemActor::AItemActor()
 	// 物理シミュレーションを有効にし、商品用コリジョンプリセットを使う
 	Mesh->SetSimulatePhysics(true);
 	Mesh->SetCollisionProfileName(TEXT("Item"));
+
+	// キャラクターが段差として商品に乗らないようにする
+	Mesh->CanCharacterStepUpOn = ECB_No;
 }
 
 void AItemActor::ApplyItemData_Implementation(const FItemData& NewData)

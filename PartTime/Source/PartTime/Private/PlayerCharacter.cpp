@@ -5,10 +5,13 @@
 #include "Camera/CameraComponent.h"
 #include "PhysicsEngine/PhysicsHandleComponent.h"
 
+#include "PartTimeCharacterMovement.h"
 #include "GrabberComponent.h"
 
 // Sets default values
-APlayerCharacter::APlayerCharacter()
+APlayerCharacter::APlayerCharacter(const FObjectInitializer& ObjectInitializer)
+// 移動コンポーネントを、独自のクラスに差し替える
+	: Super(ObjectInitializer.SetDefaultSubobjectClass<UPartTimeCharacterMovement>(ACharacter::CharacterMovementComponentName))
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = false;

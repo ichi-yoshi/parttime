@@ -7,6 +7,8 @@
 #include "Components/PrimitiveComponent.h"
 #include "Engine/World.h"
 #include "GameFramework/Actor.h"
+#include "GameFramework/Character.h"
+#include "Components/CapsuleComponent.h"
 
 #include "PartTimeCollisionChannels.h"
 #include "ItemActor.h"
@@ -39,6 +41,9 @@ void UGrabberComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAct
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
 	if (PhysicsHandle == nullptr || ViewCamera == nullptr) { return; }
+
+	// 離した商品の無視の解除を、毎フレームチェック
+	RestoreReleasedComponents();
 
 	// 掴んでいるものがあれば、目の前に追従させる
 	if (PhysicsHandle->GetGrabbedComponent() == nullptr) { return; }
@@ -111,6 +116,15 @@ void UGrabberComponent::Grab()
 		HitComponent->GetComponentRotation()
 	);
 
+	// オーナーの移動処理が掴んだ商品を無視するようにする
+	if (ACharacter* OwnerCharacter = Cast<ACharacter>(GetOwner()))
+	{
+		OwnerCharacter->GetCapsuleComponent()->IgnoreComponentWhenMoving(HitComponent, true);
+
+		// 解除待ちの商品をまた掴んだ場合は、待ちのリストから外す
+		PendingRestoreComponents.Remove(HitComponent);
+	}
+
 	// 商品を掴まれている状態にする
 	AItemActor* HeldItem = Cast<AItemActor>(HitComponent->GetOwner());
 	if (HeldItem != nullptr) { HeldItem->SetHeld(true); }
@@ -131,6 +145,13 @@ void UGrabberComponent::Release()
 	if (AItemActor* HeldItem = Cast<AItemActor>(GrabbedComponent->GetOwner()))
 	{
 		HeldItem->SetHeld(false);
+	}
+
+	if (ACharacter* OwnerCharacter = Cast<ACharacter>(GetOwner()))
+	{
+		// 体にめり込んだまま解除すると押し出されるので、重なりがなくなるまで無視する
+		// 解除はTickで行う
+		PendingRestoreComponents.AddUnique(GrabbedComponent);
 	}
 
 	// ものを離す
@@ -172,4 +193,42 @@ bool UGrabberComponent::IsGrabbing() const
 
 	// ものを掴んでいるか
 	return PhysicsHandle->GetGrabbedComponent() != nullptr;
+}
+
+void UGrabberComponent::RestoreReleasedComponents()
+{
+	if (PendingRestoreComponents.IsEmpty()) { return; }
+
+	ACharacter* OwnerCharacter = Cast<ACharacter>(GetOwner());
+	if (OwnerCharacter == nullptr) { return; }
+
+	UCapsuleComponent* Capsule = OwnerCharacter->GetCapsuleComponent();
+
+	// 後ろから回して、途中で要素を消してもまだ見ていない要素の番号がずれないようにする
+	for (int32 Index = PendingRestoreComponents.Num() - 1; Index >= 0; --Index)
+	{
+		UPrimitiveComponent* Component = PendingRestoreComponents[Index].Get();
+
+		// 商品が消えていたら、リストから外す
+		if (Component == nullptr)
+		{
+			PendingRestoreComponents.RemoveAtSwap(Index);
+			continue;
+		}
+
+		// 今のカプセルの位置と向きで、カプセルの形が商品と重なっているかチェック
+		const bool bOverlapping = Component->ComponentOverlapComponent(
+			Capsule,
+			Capsule->GetComponentLocation(),
+			Capsule->GetComponentQuat(),
+			FCollisionQueryParams()
+		);
+
+		// 重なりがなくなったら、移動処理が商品を無視するのをやめる
+		if (!bOverlapping)
+		{
+			Capsule->IgnoreComponentWhenMoving(Component, false);
+			PendingRestoreComponents.RemoveAtSwap(Index);
+		}
+	}
 }

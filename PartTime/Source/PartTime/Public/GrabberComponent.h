@@ -8,6 +8,7 @@
 
 class UPhysicsHandleComponent;
 class UCameraComponent;
+class UPrimitiveComponent;
 
 class AItemActor;
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnHeldItemChanged, AItemActor*, HeldItem);
@@ -49,6 +50,12 @@ private:
 	// @param OutHitResult:ヒットした部品・座標などのデータ構造体(参照渡し)
 	// @return:ヒットしたらtrue
 	bool IsTargetInReach(FHitResult& OutHitResult) const;
+
+	// 離した商品から、体との重なりがなくなったものから移動処理の無視を解除する
+	void RestoreReleasedComponents();
+	// 離したあと、体との重なりがなくなるのを待っている商品。待っている間に消えても安全なように、弱参照でもつ
+	TArray<TWeakObjectPtr<UPrimitiveComponent>> PendingRestoreComponents;
+
 
 
 	UPROPERTY()
